@@ -1,43 +1,43 @@
-# AI Usage Documentation
-
-> **Note to self before submitting:** the factual parts below describe what the AI actually produced. Rewrite the sections marked ✏️ in your own words, based on what *you* reviewed, changed, and learned. The rubric grades honest reflection, not a polished template.
+# AI Usage
 
 ## Tools Used
 
-- **Claude (Claude Code, Opus 5.5 model)** generated the initial project: the database schema, Flask routes, templates, the Job Match algorithm, and its unit tests.
-- ✏️ *(List any other tools you used, e.g. ChatGPT for explaining errors, plus anything you used Claude for afterwards: debugging, explanations, etc.)*
+- **Claude Code** (VS Code extension, Claude Opus 5.5)
+- **ChatGPT**
+
+## How AI Was Used
+
+- **Code generation:** Claude generated the initial implementation from the project specification: the MySQL schema and sample data, the Flask routes and database layer, the Jinja/Bootstrap templates, the Job Match algorithm (`matcher.py`), and the unit tests.
+- **Testing:** Claude ran the app against a temporary local MySQL instance, loading `schema.sql` and the Assignment 7 script, and ran automated checks against every page.
+- **Demo video:** Claude scripted and recorded the demo video. A Playwright script drove the app in the browser, on-screen captions explained each step, and MySQL query windows showed each change in the database. OBS Studio did the screen recording.
 
 ## Key Prompts
 
-1. "Do Assignment 7 and the project," with the Assignment 7 handout and the Project Specification (.docx) as context.
-2. ✏️ *(Add the follow-up prompts you use: debugging, changes, explanations. For example:)*
-   - "Explain how `JSON_SET` keeps the other keys in a JSON column."
-   - "Why does my Flask app say `Access denied for user 'root'@'localhost'`?"
+1. Generate the Flask project from the provided project specification, following its required folder structure and features.
+2. Review and test the app end to end, and fix any bugs found.
+3. Record a 3–7 minute demo covering the client, server, and database.
 
 ## What Worked Well
 
-- **CRUD boilerplate:** the AI produced consistent list/detail/add/edit/delete routes for all four tables quickly, using parameterized queries (`%s` placeholders) to prevent SQL injection.
-- **JSON columns in forms:** it mapped the `requirements` and `interview_data` JSON columns to ordinary form fields (comma-separated skill lists, numbers, checkboxes) instead of making users type raw JSON. When a record is edited, the existing JSON is merged, so keys added in Workbench with `JSON_SET` (like `offer_amount`) aren't lost.
-- **Job Match algorithm:** it kept the matching logic in its own module (`matcher.py`), separate from Flask and MySQL, so it can be unit-tested. The tests reproduce the spec's example (100% and 67%, Missing: Tableau).
-- **Sample data:** it lined up the seed data with Assignment 7 (applications 2 and 5, jobs 1 and 3 hold the same JSON as the handout).
+- **CRUD boilerplate:** consistent list, detail, add, edit, and delete pages for all four tables, using parameterized queries (`%s`) to prevent SQL injection.
+- **JSON columns in forms:** skills and interview details are entered as normal form fields and saved as JSON; extra keys added in Workbench are kept when a record is edited.
+- **Testable Job Match:** the matching logic lives in its own module with unit tests that reproduce the specification's example (100% for 3 of 3 skills, 67% with one missing).
 
-## What I Modified / Reviewed
+## Bugs Found and Fixed
 
-Changes made during generation, after reviewing the first draft:
-- Fixed navbar highlighting so the "Jobs" tab doesn't light up on the Job Match page (both routes start with `job_`).
-- Made the status-color mapping a Jinja *global*, because macros imported with `{% from ... import %}` can't see context-processor variables.
-- Replaced a `{{ macro() or '—' }}` fallback that never showed, because the macro's output contains whitespace and is therefore never "empty".
+- **Navbar highlighting:** the "Jobs" tab was highlighted on the Job Match page because both route names start with `job_`.
+- **Status badge colors:** imported Jinja macros cannot see context-processor variables, so the color mapping was moved to a Jinja global.
+- **Empty skills placeholder:** the "—" fallback never showed because the macro output contained whitespace and was never considered empty.
 
-✏️ *Add your own changes here, for example:*
-- *Changed the sample data to companies/jobs I'm actually applying to*
-- *Adjusted styling/colors*
-- *Added or removed a validation rule*
-- *Anything you fixed after testing it yourself*
+## My Contributions and Decisions
+
+- Reviewed the generated code to understand the request flow (route → `database.py` → MySQL → template).
+- Structured the Git history as logical commits (schema → database layer → matching algorithm → Flask app → docs) and created and pushed the GitHub repository myself.
+- Kept credentials out of the repository: the database password lives in `.env`, which is excluded by `.gitignore`.
 
 ## Lessons Learned
 
-✏️ *Write 3–5 bullet points in your own words. Some prompts to think about:*
-- *Did the AI-generated code run the first time? What broke, and how did you find out?*
-- *What did you have to understand before you could explain the code in your video?*
-- *Where was AI most useful (boilerplate, SQL, explanations) and least useful?*
-- *Why does testing AI output matter, e.g. the template bugs above that looked correct?*
+- **Generated code that looks correct can still be wrong.** All three template bugs looked fine on reading; they only appeared when pages were rendered and tested.
+- **Test against a real database.** Unit tests covered the matching logic, but only end-to-end tests against MySQL confirmed that forms, JSON columns, and cascading deletes worked together.
+- **AI is fastest at repetitive code**, such as CRUD pages for four tables, but explaining the system still requires understanding how the pieces connect.
+- **Credentials never go into an AI chat.** Sign-ins go through official login flows, and secrets stay in uncommitted `.env` files.
