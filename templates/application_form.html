@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% from "_macros.html" import field, textarea, checkbox %}
+{% block title %}{{ action }} Application{% endblock %}
+{% block content %}
+{% set a = app_row %}
+<h1 class="h3 mb-3">{{ action }} Application</h1>
+{% if not jobs %}
+  <div class="alert alert-warning">You need to <a href="{{ url_for('job_add') }}">add a job</a> before logging an application.</div>
+{% else %}
+<div class="card"><div class="card-body">
+<form method="post" novalidate>
+  <div class="mb-3">
+    <label for="job_id" class="form-label">Job <span class="text-danger">*</span></label>
+    <select id="job_id" name="job_id" class="form-select" required>
+      <option value="">Choose…</option>
+      {% for j in jobs %}
+        <option value="{{ j.job_id }}" {% if j.job_id == a.job_id %}selected{% endif %}>{{ j.company_name }} — {{ j.job_title }}</option>
+      {% endfor %}
+    </select>
+  </div>
+  <div class="row">
+    <div class="col-md-4">{{ field('application_date', 'Application date', a.application_date, type='date', required=true, attrs='max="' ~ today ~ '"') }}</div>
+    <div class="col-md-4 mb-3">
+      <label for="status" class="form-label">Status <span class="text-danger">*</span></label>
+      <select id="status" name="status" class="form-select">
+        {% for s in statuses %}<option {% if s == a.status %}selected{% endif %}>{{ s }}</option>{% endfor %}
+      </select>
+    </div>
+    <div class="col-md-4">{{ field('resume_version', 'Resume version', a.resume_version, placeholder='v2-data', attrs='maxlength="50"') }}</div>
+  </div>
+  {{ checkbox('cover_letter_sent', 'Cover letter sent', a.cover_letter_sent) }}
+
+  <h2 class="h5 mt-3">Interview data</h2>
+  <p class="text-muted small">Saved in the <code>interview_data</code> JSON column. Leave blank if you haven't interviewed yet.</p>
+  <div class="row">
+    <div class="col-md-4">{{ field('interview_rounds', 'Interview rounds', a.interview_rounds, type='number', attrs='min="0"') }}</div>
+    <div class="col-md-4">{{ field('rating', 'Rating (1–5)', a.rating, type='number', attrs='min="1" max="5"') }}</div>
+    <div class="col-md-4">{{ field('offer_amount', 'Offer amount ($)', a.offer_amount, type='number', attrs='min="0" step="1000"') }}</div>
+  </div>
+  {{ field('interviewers', 'Interviewers', a.interviewers, placeholder='Sarah Johnson, Mike Chen', help='Comma-separated') }}
+  {{ field('technical_questions', 'Technical questions', a.technical_questions, placeholder='SQL joins, API design', help='Comma-separated') }}
+  {{ textarea('feedback', 'Feedback', a.feedback, rows=2) }}
+  {{ field('next_steps', 'Next steps', a.next_steps) }}
+
+  <button type="submit" class="btn btn-primary">Save</button>
+  <a href="{{ url_for('application_detail', application_id=a.application_id) if a.application_id else url_for('applications') }}" class="btn btn-link">Cancel</a>
+</form>
+</div></div>
+{% endif %}
+{% endblock %}

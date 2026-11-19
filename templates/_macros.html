@@ -1,0 +1,38 @@
+{% macro field(name, label, value='', type='text', required=false, help='', placeholder='', attrs='') %}
+<div class="mb-3">
+  <label for="{{ name }}" class="form-label">{{ label }}{% if required %} <span class="text-danger">*</span>{% endif %}</label>
+  <input type="{{ type }}" class="form-control" id="{{ name }}" name="{{ name }}"
+         value="{{ value if value is not none else '' }}" placeholder="{{ placeholder }}"
+         {% if required %}required{% endif %} {{ attrs|safe }}>
+  {% if help %}<div class="form-text">{{ help }}</div>{% endif %}
+</div>
+{% endmacro %}
+
+{% macro textarea(name, label, value='', rows=3, help='') %}
+<div class="mb-3">
+  <label for="{{ name }}" class="form-label">{{ label }}</label>
+  <textarea class="form-control" id="{{ name }}" name="{{ name }}" rows="{{ rows }}">{{ value if value is not none else '' }}</textarea>
+  {% if help %}<div class="form-text">{{ help }}</div>{% endif %}
+</div>
+{% endmacro %}
+
+{% macro checkbox(name, label, checked=false) %}
+<div class="form-check mb-3">
+  <input class="form-check-input" type="checkbox" id="{{ name }}" name="{{ name }}" {% if checked %}checked{% endif %}>
+  <label class="form-check-label" for="{{ name }}">{{ label }}</label>
+</div>
+{% endmacro %}
+
+{% macro delete_button(url, message, label='Delete', size='sm') %}
+<form method="post" action="{{ url }}" class="d-inline" data-confirm="{{ message }}">
+  <button type="submit" class="btn btn-outline-danger btn-{{ size }}">{{ label }}</button>
+</form>
+{% endmacro %}
+
+{% macro status_badge(status) %}
+<span class="badge text-bg-{{ STATUS_COLORS.get(status, 'secondary') }}">{{ status }}</span>
+{% endmacro %}
+
+{% macro skill_pills(skills, style='light') %}
+{% for s in skills %}<span class="badge rounded-pill text-bg-{{ style }} border me-1">{{ s }}</span>{% endfor %}
+{% endmacro %}

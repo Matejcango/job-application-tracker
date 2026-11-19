@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% from "_macros.html" import delete_button, status_badge %}
+{% block title %}Applications{% endblock %}
+{% block content %}
+<div class="d-flex flex-wrap justify-content-between align-items-center mb-3 gap-2">
+  <h1 class="h3 mb-0">Applications</h1>
+  <a href="{{ url_for('application_add') }}" class="btn btn-primary">+ Add Application</a>
+</div>
+
+<ul class="nav nav-pills mb-3 flex-wrap">
+  <li class="nav-item"><a class="nav-link {% if not status %}active{% endif %}" href="{{ url_for('applications') }}">All</a></li>
+  {% for s in statuses %}
+  <li class="nav-item"><a class="nav-link {% if s == status %}active{% endif %}" href="{{ url_for('applications', status=s) }}">{{ s }}</a></li>
+  {% endfor %}
+</ul>
+
+<div class="card">
+  <div class="table-responsive">
+    <table class="table table-hover align-middle mb-0">
+      <thead class="table-light">
+        <tr><th>Job</th><th>Applied</th><th>Status</th><th>Resume</th><th class="text-center">Cover letter</th><th>Interview notes</th><th class="text-end">Actions</th></tr>
+      </thead>
+      <tbody>
+      {% for a in applications %}
+        <tr>
+          <td>
+            <a href="{{ url_for('application_detail', application_id=a.application_id) }}" class="fw-semibold">{{ a.job_title }}</a>
+            <div class="small text-muted">{{ a.company_name }}</div>
+          </td>
+          <td class="text-nowrap">{{ a.application_date }}</td>
+          <td>{{ status_badge(a.status) }}</td>
+          <td>{{ a.resume_version or '' }}</td>
+          <td class="text-center">{{ '✓' if a.cover_letter_sent else '' }}</td>
+          <td class="small">
+            {% if a.idata %}
+              {% if a.idata.interview_rounds %}{{ a.idata.interview_rounds }} round(s){% endif %}
+              {% if a.idata.next_steps %}<div class="text-muted">Next: {{ a.idata.next_steps }}</div>{% endif %}
+            {% endif %}
+          </td>
+          <td class="text-end text-nowrap">
+            <a href="{{ url_for('application_edit', application_id=a.application_id) }}" class="btn btn-outline-secondary btn-sm">Edit</a>
+            {{ delete_button(url_for('application_delete', application_id=a.application_id),
+                 "Delete your application for " ~ a.job_title ~ " at " ~ a.company_name ~ "?") }}
+          </td>
+        </tr>
+      {% else %}
+        <tr><td colspan="7" class="text-center text-muted py-4">No applications{% if status %} with status "{{ status }}"{% endif %}.</td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

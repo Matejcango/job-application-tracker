@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+{% from "_macros.html" import skill_pills %}
+{% block title %}Job Match{% endblock %}
+{% block content %}
+<h1 class="h3 mb-1">Job Match</h1>
+<p class="text-muted">Enter your skills and see jobs ranked by how many of their <strong>required</strong> skills you have.</p>
+
+<div class="card mb-4"><div class="card-body">
+<form method="post" class="row g-2 align-items-end">
+  <div class="col-md-8">
+    <label for="skills" class="form-label">Your skills</label>
+    <input type="text" id="skills" name="skills" class="form-control form-control-lg"
+           value="{{ skills_text }}" placeholder="Python, SQL, Flask" autofocus>
+    <div class="form-text">Separate skills with commas. Matching ignores upper/lower case.</div>
+  </div>
+  <div class="col-md-4">
+    <div class="form-check mb-2">
+      <input class="form-check-input" type="checkbox" id="show_all" name="show_all" {% if show_all %}checked{% endif %}>
+      <label class="form-check-label" for="show_all">Include 0% matches</label>
+    </div>
+    <button type="submit" class="btn btn-primary btn-lg w-100">Find Matches</button>
+  </div>
+</form>
+</div></div>
+
+{% if results is not none %}
+  <h2 class="h5">Your skills: <span class="fw-normal">{{ user_skills|join(', ') }}</span></h2>
+  <h2 class="h5 mb-3">Matching jobs ({{ results|selectattr('percent')|list|length }})</h2>
+
+  {% for r in results %}
+  {% set color = 'success' if r.percent >= 75 else ('warning' if r.percent >= 40 else 'danger') %}
+  <div class="card mb-3 match-card">
+    <div class="card-body">
+      <div class="d-flex flex-wrap justify-content-between align-items-start gap-2">
+        <div>
+          <span class="text-muted me-1">{{ loop.index }}.</span>
+          <a href="{{ url_for('job_detail', job_id=r.job_id) }}" class="h5">{{ r.job_title }}</a>
+          <span class="text-muted">at {{ r.company_name }}</span>
+          <div class="small text-muted">{{ r.job_type }}{% if r.salary_min or r.salary_max %} · {{ r.salary_min|money }}–{{ r.salary_max|money }}{% endif %}{% if r.requirements.get('remote_option') %} · Remote OK{% endif %}</div>
+        </div>
+        <div class="text-end">
+          <div class="fs-4 fw-semibold text-{{ color }}">{{ r.percent }}%</div>
+          <div class="small text-muted">{{ r.matched|length }}/{{ r.required_count }} skills</div>
+        </div>
+      </div>
+      <div class="progress my-2" style="height: 6px" role="progressbar" aria-valuenow="{{ r.percent }}" aria-valuemin="0" aria-valuemax="100">
+        <div class="progress-bar bg-{{ color }}" style="width: {{ r.percent }}%"></div>
+      </div>
+      <div class="small">
+        {% if r.matched %}<div class="mb-1"><span class="text-muted">Have:</span> {{ skill_pills(r.matched, 'success') }}</div>{% endif %}
+        {% if r.missing %}<div class="mb-1"><span class="text-muted">Missing:</span> {{ skill_pills(r.missing, 'danger') }}</div>{% endif %}
+        {% if r.preferred_matched %}<div><span class="text-muted">Bonus (preferred):</span> {{ skill_pills(r.preferred_matched, 'info') }}</div>{% endif %}
+      </div>
+    </div>
+  </div>
+  {% else %}
+  <div class="alert alert-info">None of the jobs' required skills match yours. Try adding more skills, or tick "Include 0% matches" to see every job.</div>
+  {% endfor %}
+
+  {% if unmatched and not show_all %}
+  <p class="text-muted small">{{ unmatched }} other job{{ 's' if unmatched != 1 }} had no matching required skills.</p>
+  {% endif %}
+{% endif %}
+{% endblock %}

@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% from "_macros.html" import field, checkbox %}
+{% block title %}{{ action }} Job{% endblock %}
+{% block content %}
+<h1 class="h3 mb-3">{{ action }} Job</h1>
+{% if not companies %}
+  <div class="alert alert-warning">You need to <a href="{{ url_for('company_add') }}">add a company</a> before adding a job.</div>
+{% else %}
+<div class="card"><div class="card-body">
+<form method="post" novalidate>
+  <div class="row">
+    <div class="col-md-6 mb-3">
+      <label for="company_id" class="form-label">Company <span class="text-danger">*</span></label>
+      <select id="company_id" name="company_id" class="form-select" required>
+        <option value="">Choose…</option>
+        {% for c in companies %}
+          <option value="{{ c.company_id }}" {% if c.company_id == job.company_id %}selected{% endif %}>{{ c.company_name }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="col-md-6">{{ field('job_title', 'Job title', job.job_title, required=true, attrs='maxlength="100"') }}</div>
+  </div>
+  <div class="row">
+    <div class="col-md-4 mb-3">
+      <label for="job_type" class="form-label">Job type <span class="text-danger">*</span></label>
+      <select id="job_type" name="job_type" class="form-select">
+        {% for t in job_types %}<option {% if t == job.job_type %}selected{% endif %}>{{ t }}</option>{% endfor %}
+      </select>
+    </div>
+    <div class="col-md-4">{{ field('salary_min', 'Minimum salary', job.salary_min, type='number', attrs='min="0" step="1000"') }}</div>
+    <div class="col-md-4">{{ field('salary_max', 'Maximum salary', job.salary_max, type='number', attrs='min="0" step="1000"') }}</div>
+  </div>
+  <div class="row">
+    <div class="col-md-8">{{ field('job_url', 'Job posting URL', job.job_url, type='url', placeholder='https://', attrs='maxlength="300"') }}</div>
+    <div class="col-md-4">{{ field('date_posted', 'Date posted', job.date_posted, type='date') }}</div>
+  </div>
+
+  <h2 class="h5 mt-3">Requirements</h2>
+  <p class="text-muted small">Saved in the <code>requirements</code> JSON column and used by Job Match.</p>
+  {{ field('required_skills', 'Required skills', job.required_skills, placeholder='Python, SQL, Git', help='Comma-separated') }}
+  {{ field('preferred_skills', 'Preferred skills', job.preferred_skills, placeholder='Flask, Docker, AWS', help='Comma-separated') }}
+  <div class="row">
+    <div class="col-md-8">{{ field('education', 'Education', job.education, placeholder='Bachelor in CS or related field') }}</div>
+    <div class="col-md-4">{{ field('experience_years', 'Experience (years)', job.experience_years, type='number', attrs='min="0"') }}</div>
+  </div>
+  {{ checkbox('remote_option', 'Remote option available', job.remote_option) }}
+
+  <button type="submit" class="btn btn-primary">Save</button>
+  <a href="{{ url_for('job_detail', job_id=job.job_id) if job.job_id else url_for('jobs') }}" class="btn btn-link">Cancel</a>
+</form>
+</div></div>
+{% endif %}
+{% endblock %}

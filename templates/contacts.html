@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% from "_macros.html" import delete_button %}
+{% block title %}Contacts{% endblock %}
+{% block content %}
+<div class="d-flex flex-wrap justify-content-between align-items-center mb-3 gap-2">
+  <h1 class="h3 mb-0">Contacts</h1>
+  <a href="{{ url_for('contact_add') }}" class="btn btn-primary">+ Add Contact</a>
+</div>
+
+<form class="row g-2 mb-3" method="get">
+  <div class="col-sm-8 col-md-6">
+    <input type="search" name="q" value="{{ search }}" class="form-control" placeholder="Search by name, company or title">
+  </div>
+  <div class="col-auto">
+    <button class="btn btn-outline-secondary">Search</button>
+    {% if search %}<a href="{{ url_for('contacts') }}" class="btn btn-link">Clear</a>{% endif %}
+  </div>
+</form>
+
+<div class="card">
+  <div class="table-responsive">
+    <table class="table table-hover align-middle mb-0">
+      <thead class="table-light">
+        <tr><th>Name</th><th>Company</th><th>Email / Phone</th><th>Notes</th><th class="text-end">Actions</th></tr>
+      </thead>
+      <tbody>
+      {% for k in contacts %}
+        <tr>
+          <td>
+            <span class="fw-semibold">{{ k.contact_name }}</span>
+            {% if k.linkedin_url %}<a href="{{ k.linkedin_url }}" target="_blank" rel="noopener" class="small ms-1">LinkedIn ↗</a>{% endif %}
+            <div class="small text-muted">{{ k.title or '' }}</div>
+          </td>
+          <td><a href="{{ url_for('company_detail', company_id=k.company_id) }}">{{ k.company_name }}</a></td>
+          <td class="small">
+            {% if k.email %}<a href="mailto:{{ k.email }}">{{ k.email }}</a>{% endif %}
+            {% if k.phone %}<div>{{ k.phone }}</div>{% endif %}
+          </td>
+          <td class="small text-muted">{{ k.notes or '' }}</td>
+          <td class="text-end text-nowrap">
+            <a href="{{ url_for('contact_edit', contact_id=k.contact_id) }}" class="btn btn-outline-secondary btn-sm">Edit</a>
+            {{ delete_button(url_for('contact_delete', contact_id=k.contact_id), "Delete contact " ~ k.contact_name ~ "?") }}
+          </td>
+        </tr>
+      {% else %}
+        <tr><td colspan="5" class="text-center text-muted py-4">No contacts found.</td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

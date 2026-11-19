@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{% from "_macros.html" import delete_button %}
+{% block title %}{{ company.company_name }}{% endblock %}
+{% block content %}
+<nav aria-label="breadcrumb"><ol class="breadcrumb">
+  <li class="breadcrumb-item"><a href="{{ url_for('companies') }}">Companies</a></li>
+  <li class="breadcrumb-item active">{{ company.company_name }}</li>
+</ol></nav>
+
+<div class="d-flex flex-wrap justify-content-between align-items-start mb-3 gap-2">
+  <div>
+    <h1 class="h3 mb-1">{{ company.company_name }}</h1>
+    <div class="text-muted">{{ [company.industry, [company.city, company.state]|select|join(', ')]|select|join(' · ') }}</div>
+    {% if company.website %}<a href="{{ company.website }}" target="_blank" rel="noopener">{{ company.website }}</a>{% endif %}
+  </div>
+  <div class="d-flex gap-2">
+    <a href="{{ url_for('company_edit', company_id=company.company_id) }}" class="btn btn-outline-secondary">Edit</a>
+    {{ delete_button(url_for('company_delete', company_id=company.company_id),
+         "Delete " ~ company.company_name ~ " and all of its jobs, applications and contacts?", size='md') }}
+  </div>
+</div>
+
+{% if company.notes %}<div class="card card-body mb-4 notes">{{ company.notes }}</div>{% endif %}
+
+<div class="row g-3">
+  <div class="col-lg-7">
+    <div class="card">
+      <div class="card-header bg-white d-flex justify-content-between align-items-center">
+        <span class="fw-semibold">Jobs ({{ jobs|length }})</span>
+        <a href="{{ url_for('job_add', company_id=company.company_id) }}" class="btn btn-sm btn-primary">+ Add Job</a>
+      </div>
+      <ul class="list-group list-group-flush">
+        {% for j in jobs %}
+        <li class="list-group-item">
+          <a href="{{ url_for('job_detail', job_id=j.job_id) }}">{{ j.job_title }}</a>
+          <div class="small text-muted">{{ j.job_type }}{% if j.salary_min or j.salary_max %} · {{ j.salary_min|money }}–{{ j.salary_max|money }}{% endif %}{% if j.date_posted %} · posted {{ j.date_posted }}{% endif %}</div>
+        </li>
+        {% else %}
+        <li class="list-group-item text-muted">No jobs yet.</li>
+        {% endfor %}
+      </ul>
+    </div>
+  </div>
+  <div class="col-lg-5">
+    <div class="card">
+      <div class="card-header bg-white d-flex justify-content-between align-items-center">
+        <span class="fw-semibold">Contacts ({{ contacts|length }})</span>
+        <a href="{{ url_for('contact_add', company_id=company.company_id) }}" class="btn btn-sm btn-primary">+ Add Contact</a>
+      </div>
+      <ul class="list-group list-group-flush">
+        {% for k in contacts %}
+        <li class="list-group-item">
+          <div class="fw-semibold">{{ k.contact_name }}</div>
+          <div class="small text-muted">{{ k.title or '' }}</div>
+          <div class="small">
+            {% if k.email %}<a href="mailto:{{ k.email }}">{{ k.email }}</a>{% endif %}
+            {% if k.phone %} · {{ k.phone }}{% endif %}
+          </div>
+        </li>
+        {% else %}
+        <li class="list-group-item text-muted">No contacts yet.</li>
+        {% endfor %}
+      </ul>
+    </div>
+  </div>
+</div>
+{% endblock %}

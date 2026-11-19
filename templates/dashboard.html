@@ -1,0 +1,115 @@
+{% extends "base.html" %}
+{% from "_macros.html" import status_badge %}
+{% block title %}Dashboard{% endblock %}
+{% block content %}
+<div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-2">
+  <h1 class="h3 mb-0">Dashboard</h1>
+  <div class="d-flex gap-2">
+    <a href="{{ url_for('application_add') }}" class="btn btn-primary">+ New Application</a>
+    <a href="{{ url_for('job_match') }}" class="btn btn-outline-primary">Find Matching Jobs</a>
+  </div>
+</div>
+
+<div class="row g-3 mb-4">
+  {% for key, label, endpoint in [('companies','Companies','companies'), ('jobs','Jobs','jobs'),
+                                   ('applications','Applications','applications'), ('contacts','Contacts','contacts')] %}
+  <div class="col-6 col-lg-3">
+    <a href="{{ url_for(endpoint) }}" class="card stat-card h-100 text-decoration-none">
+      <div class="card-body">
+        <div class="text-muted small">{{ label }}</div>
+        <div class="display-6 fw-semibold">{{ counts[key] }}</div>
+      </div>
+    </a>
+  </div>
+  {% endfor %}
+</div>
+
+<div class="row g-3">
+  <div class="col-lg-6">
+    <div class="card h-100">
+      <div class="card-header bg-white fw-semibold">Applications by status</div>
+      <div class="card-body">
+        {% set total = counts.applications or 1 %}
+        {% for status, n in by_status.items() %}
+        <div class="mb-2">
+          <div class="d-flex justify-content-between small">
+            <a href="{{ url_for('applications', status=status) }}" class="text-decoration-none">{{ status }}</a>
+            <span>{{ n }}</span>
+          </div>
+          <div class="progress" role="progressbar" aria-valuenow="{{ n }}" aria-valuemin="0" aria-valuemax="{{ total }}" style="height: 8px">
+            <div class="progress-bar bg-{{ STATUS_COLORS[status] }}" style="width: {{ (100 * n / total)|round(1) }}%"></div>
+          </div>
+        </div>
+        {% endfor %}
+        <hr>
+        <div class="row text-center">
+          <div class="col">
+            <div class="fs-4 fw-semibold">{{ response_rate }}%</div>
+            <div class="small text-muted">Response rate</div>
+          </div>
+          <div class="col">
+            <div class="fs-4 fw-semibold">{{ by_status.Interview }}</div>
+            <div class="small text-muted">Interviews</div>
+          </div>
+          <div class="col">
+            <div class="fs-4 fw-semibold">{{ by_status.Offer }}</div>
+            <div class="small text-muted">Offers</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-6">
+    <div class="card h-100">
+      <div class="card-header bg-white fw-semibold">Recent applications</div>
+      <ul class="list-group list-group-flush">
+        {% for a in recent %}
+        <li class="list-group-item d-flex justify-content-between align-items-center">
+          <div>
+            <a href="{{ url_for('application_detail', application_id=a.application_id) }}">{{ a.job_title }}</a>
+            <div class="small text-muted">{{ a.company_name }} · {{ a.application_date }}</div>
+          </div>
+          {{ status_badge(a.status) }}
+        </li>
+        {% else %}
+        <li class="list-group-item text-muted">No applications yet.</li>
+        {% endfor %}
+      </ul>
+    </div>
+  </div>
+
+  <div class="col-lg-6">
+    <div class="card h-100">
+      <div class="card-header bg-white fw-semibold">Most requested skills</div>
+      <div class="card-body">
+        {% if top_skills %}
+          {% set max_n = top_skills[0][1] %}
+          {% for skill, n in top_skills %}
+          <div class="d-flex align-items-center mb-2">
+            <div class="skill-label small">{{ skill }}</div>
+            <div class="progress flex-grow-1" style="height: 8px">
+              <div class="progress-bar bg-brand" style="width: {{ (100 * n / max_n)|round(1) }}%"></div>
+            </div>
+            <div class="small ms-2 text-muted">{{ n }} job{{ 's' if n != 1 }}</div>
+          </div>
+          {% endfor %}
+        {% else %}
+          <p class="text-muted mb-0">Add required skills to jobs to see trends here.</p>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-6">
+    <div class="card h-100">
+      <div class="card-header bg-white fw-semibold">Jobs at a glance</div>
+      <div class="card-body">
+        <p class="mb-2"><span class="fs-4 fw-semibold">{{ remote_jobs }}</span> of {{ counts.jobs }} jobs offer a remote option.</p>
+        <p class="text-muted small mb-0">Pulled from the <code>requirements</code> JSON column with
+          <code>requirements-&gt;&gt;'$.remote_option'</code>.</p>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
